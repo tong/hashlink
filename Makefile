@@ -196,8 +196,14 @@ LHL_LINK_FLAGS += -install_name @rpath/libhl.dylib
 else
 
 # Linux
-CFLAGS += -m$(MARCH) -fPIC -pthread -fno-omit-frame-pointer $(shell pkg-config --cflags sdl2)
+CFLAGS += -fPIC -pthread -fno-omit-frame-pointer $(shell pkg-config --cflags sdl2)
 LFLAGS += -lm -Wl,-rpath,.:'$$ORIGIN':$(INSTALL_LIB_DIR) -Wl,--export-dynamic -Wl,--no-undefined
+
+ifeq ($(ARCH),x86_64)
+  CFLAGS += -m$(MARCH)
+else ifeq ($(ARCH),i386)
+  CFLAGS += -m$(MARCH)
+endif
 
 ifeq ($(MARCH),32)
 CFLAGS += -I /usr/include/i386-linux-gnu -msse2 -mfpmath=sse
@@ -254,7 +260,7 @@ src/std/regexp.o: src/std/regexp.c
 	${CC} ${CFLAGS} -o $@ -c $< ${PCRE_FLAGS}
 
 libhl: ${LIB}
-	${CC} ${CFLAGS} -o libhl.$(LIBEXT) -m${MARCH} ${LIBFLAGS} ${LHL_LINK_FLAGS} -shared $^ ${LIBHL_LDLIBS}
+	${CC} ${CFLAGS} -o libhl.$(LIBEXT) ${LIBFLAGS} ${LHL_LINK_FLAGS} -shared $^ ${LIBHL_LDLIBS}
 
 hlc: ${BOOT}
 	${CC} ${CFLAGS} -o hlc ${BOOT} ${LFLAGS} ${EXTRA_LFLAGS} ${HLC_LDLIBS}

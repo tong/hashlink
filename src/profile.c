@@ -146,13 +146,22 @@ static void *get_thread_stackptr( thread_handle *t, void **eip ) {
 	return (void*)c.Esp;
 #	endif
 #elif defined(HL_LINUX)
-#	ifdef HL_64
-	*eip = (void*)shared_context.context.uc_mcontext.gregs[REG_RIP];
-	return (void*)shared_context.context.uc_mcontext.gregs[REG_RSP];
-#	else
-	*eip = (void*)shared_context.context.uc_mcontext.gregs[REG_EIP];
-	return (void*)shared_context.context.uc_mcontext.gregs[REG_ESP];
-#	endif
+#   if defined(__i386__) || defined(__x86_64__)
+#       ifdef HL_64
+    *eip = (void*)shared_context.context.uc_mcontext.gregs[REG_RIP];
+    return (void*)shared_context.context.uc_mcontext.gregs[REG_RSP];
+#       else
+    *eip = (void*)shared_context.context.uc_mcontext.gregs[REG_EIP];
+    return (void*)shared_context.context.uc_mcontext.gregs[REG_ESP];
+#       endif
+#   elif defined(__arm__) || defined(__aarch64__)
+    // ARM: profiling not supported, return NULL
+    *eip = NULL;
+    return NULL;
+#   else
+    *eip = NULL;
+    return NULL;
+#   endif
 #elif defined(HL_MAC) && defined(__x86_64__)
 	struct __darwin_mcontext64 *mcontext = shared_context.context.uc_mcontext;
 	if (mcontext != NULL) {
